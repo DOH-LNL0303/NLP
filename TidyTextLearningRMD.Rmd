@@ -1,14 +1,20 @@
 ---
-title: "TidyTextLearning"
+title: "TidyText Learning"
 author: "Lareina La Flair"
-date: "2/9/2022"
-output: html_document
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    number_sections: true
+    theme: lumen
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-packages <- c("dplyr", "janeaustenr", "tidytext", "textdata", "wesanderson", "forcats", "plotly", "gutenbergr", "stringr", "tidyr")
+packages <- c("dplyr", "janeaustenr", "tidytext", "textdata", "wesanderson", "forcats", "plotly", "gutenbergr", "stringr", "tidyr", "SnowballC", "wordcloud", "topicmodels", "data.table")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -353,7 +359,7 @@ ggraph(bigram_graph, layout = "fr") +
 
 #### Formula for visualizing bigrams in any text!
 
-```{r ngramsform }
+```{r ngramsform, eval=TRUE, echo=FALSE}
 # libraries
 
 library(dplyr)
@@ -391,7 +397,7 @@ visualize_bigrams <- function(bigrams) {
 ```
 
 
-```{r }
+```{r kjv}
 #######################
 
 # the King James version is book 10 on Project Gutenberg:
@@ -421,8 +427,7 @@ Most operations for finding pairwise counts or correlations
 
 need to turn the data into a wide matrix first.
 
-```{r correlations, echo=FALSE}
-
+```{r correlations, eval = TRUE, echo=FALSE}
 # What words tend to appear within the same section?
 
 austen_section_words <- austen_books() %>%
@@ -478,8 +483,91 @@ word_cors %>%
   geom_node_point(color = "plum3", size = 5) +
   geom_node_text(aes(label = name), repel = TRUE) +
   theme_void()
+```
 
+#Document Term Matrices
 
+Tidying DocumentTermMatrix objects with the tm package
+
+Used Kaggle source data for [movie review analysis](https://rstudio-pubs-static.s3.amazonaws.com/132792_864e3813b0ec47cb95c7e1e2e2ad83e7.html)
+
+A note on sparsity: sparsity is smaller as it approaches 1.0. `removeSparseTerms()`, sparsity refers to the threshold of relative document frequency for a term, above which the term will be removed. A threshold of .99 means that probably all terms will be retained.
+
+```{r dtm, eval = TRUE, echo=FALSE}
+
+library(tm)
+library(SnowballC)
+library(wordcloud)
+
+data("AssociatedPress", package = "topicmodels")
+AssociatedPress
+
+terms <- Terms(AssociatedPress)
+head(terms)
+
+#########################
+
+reviews = fread("data/train.csv", stringsAsFactors = F)
+
+#reviews = fread("review_polarity.tar.gz")
+# untar("review_polarity.tar.gz", list=TRUE)  # this extracts the file from archive
+# reviews <- read.table("review_polarity.tar.gz") 
+
+# Transform to corpus
+review_corpus = Corpus(VectorSource(reviews$text))
+#
+# Normalize the texts in the reviews using a series of pre-processing steps: 1. Switch to lower case 2. Remove numbers 3. Remove punctuation marks and stopwords 4. Remove extra whitespaces
+
+review_corpus = tm_map(review_corpus, content_transformer(tolower))
+review_corpus = tm_map(review_corpus, removeNumbers)
+review_corpus = tm_map(review_corpus, removePunctuation)
+review_corpus = tm_map(review_corpus, removeWords, c("the", "and", stopwords("english")))
+review_corpus =  tm_map(review_corpus, stripWhitespace)
+
+# See what it looks like
+
+inspect(review_corpus[1])
+
+# To analyze the textual data, we use a Document-Term Matrix (DTM) representation: 
+# documents as the rows, terms/words as the columns, frequency of the term in the document as the entries.
+
+review_dtm <- DocumentTermMatrix(review_corpus)
+review_dtm
+
+inspect(review_dtm[500:505, 500:505])
+
+# To reduce the dimension of the DTM, we can remove the less frequent terms such that the sparsity is less than 0.95
+
+review_dtm = removeSparseTerms(review_dtm, 0.99)
+review_dtm
+
+# check first document, words 1-20
+
+inspect(review_dtm[1,1:20]) 
+
+# word cloud prep
+
+findFreqTerms(review_dtm, 1000)
+
+freq = data.frame(sort(colSums(as.matrix(review_dtm)), decreasing=TRUE))
+png("movierevs_wordcloud.png", width=1280,height=800) #save as png
+wordcloud(rownames(freq), freq[,1], max.words=50, colors=brewer.pal(8, "Dark2"))
+dev.off()
+
+# Not terribly informative (one, film, movie, etc.) Solution: Use tf-idf to improve relative importance of word
+
+review_dtm_tfidf <- DocumentTermMatrix(review_corpus, control = list(weighting = weightTfIdf))
+review_dtm_tfidf = removeSparseTerms(review_dtm_tfidf, 0.99)
+review_dtm_tfidf
+
+# Inspect the first document
+inspect(review_dtm_tfidf[1,1:20])
+
+# Is new wordcloud more informative? (A: somewhat!)
+
+freq = data.frame(sort(colSums(as.matrix(review_dtm_tfidf)), decreasing=TRUE))
+png("movierevs_wordcloud_tfidf.png", width=1280,height=800)
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(8, "Dark2"))
 
 ```
 

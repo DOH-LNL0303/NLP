@@ -92,16 +92,75 @@ A plot’s **geometry** dictates what visual elements will be used.
 
 # Scatterplots
 
+Uses `geom_point()` to generate scatterplots!
 
-```{r }
+Always consider overplotting, particularly in the following four situations:
+
+- Large datasets
+- Aligned values on a single axis
+- Low-precision data
+- Integer data
+- Typically, alpha blending (i.e. adding transparency) is recommended when using solid shapes. Alternatively, you can use opaque, hollow shapes.
+
+Small points are suitable for large datasets with regions of high density (lots of overlapping).
+
+
+```{r scatt, eval = TRUE}
+
+#Plot One: Scatterplot with means of each independent variable
+
+#Create summary dataset
+
+iris_summary <- iris %>% 
+  group_by(Species) %>% 
+  summarise_all(mean) 
+
+#
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+  geom_point() +
+# Different data with inherited aes to show means
+  geom_point(data = iris_summary, shape = 15, size = 5)
+
+#Alternative shape
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+  geom_point() +
+# Different data with inherited aes to show means
+  geom_point(data = iris_summary, shape = 21, size = 5, fill = "black", stroke = 2)
+
+# Use geom_jitter for overfitting
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+  geom_jitter(alpha = 0.5) 
 ```
 
 # Histograms
 
+Useful for exploring the distribution of your independent variable. Set meaningful bin widths.
+
+Histograms cut up a continuous variable into discrete bins and, by default, maps the internally calculated `count` variable (the number of observations in each bin) onto the y aesthetic. 
+
+`geom_histogram` is a special case of `geom_bar` and the position argument that can take on the following values:
+
+- stack (the default): Bars for different groups are stacked on top of each other.
+- dodge: Bars for different groups are placed side by side.
+- fill: Bars for different groups are shown as proportions.
+- identity: Plot the values as they appear in the dataset.
 
 
 ```{r hist, eval=TRUE}
 
+ggplot(iris, aes(x = Sepal.Width)) +
+  geom_histogram(binwidth = 0.1, center = 0.05) 
+
+#Overlapping histograms
+ggplot(iris, aes(x = Sepal.Width, fill = Species)) +
+  geom_histogram(binwidth = 0.1, center = 0.05, position = "dodge") +
+   scale_fill_manual(values = wes_palette(3, name = "Zissou1", type = "continuous"))
+
+#Fill
+ggplot(iris, aes(x = Sepal.Width, fill = Species)) +
+  geom_histogram(binwidth = 0.1, center = 0.05, position = "fill") +
+   scale_fill_manual(values = wes_palette(3, name = "Zissou1", type = "continuous"))
 
 ```
 
@@ -176,6 +235,7 @@ ggplot(economics, aes(x = date, y = unemploy, color = fquart)) +
 ggplot(storms, aes(x = year, y = wind, color = category)) +
   geom_line()
 
+data("freeny")
 
 
 ```

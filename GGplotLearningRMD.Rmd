@@ -1,0 +1,189 @@
+---
+title: "ggplot2 Learning"
+author: "Lareina La Flair"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    number_sections: true
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+packages <- c("dplyr", "wesanderson", "forcats", "plotly", "stringr", "tidyr", "data.table", "purrr")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Packages loading
+invisible(lapply(packages, library, character.only = TRUE))
+
+#Load native datasets
+
+data()
+data("esoph")
+head(esoph)
+str(esoph)
+
+data("mtcars")
+head(mtcars)
+
+mtcars$fcyl <- as.factor(mtcars$cyl)
+mtcars$fam <- as.factor(mtcars$am)
+str(mtcars)
+
+ 
+data("iris")
+head(iris)
+str(iris)
+
+
+data("USArrests")
+head(USArrests)
+str(USArrests)
+
+data("midwest")
+head(midwest)
+str(USArrests)
+
+oh <- midwest %>% 
+  filter(state == "OH")
+
+data("economics")
+str(economics)
+
+data("msleep")
+str(msleep)
+
+```
+
+# Introduction
+
+This is an introduction to data visualization with the R package `ggplot2` This summary stems from a DataCamp course **Introduction to Data Visualization with ggplot2**
+
+There are three main elements: data, aesthetics, and geometries.
+
+**Aesthetic mappings** (scales on which we map the data) are the cornerstone of the grammar of graphics plotting concept. This is where the magic happens - converting continuous and categorical data into visual scales that provide access to a large amount of information in a very short time.
+
+Typically, the dependent variable is mapped onto the the y-axis and the independent variable is mapped onto the x-axis.
+
+Color vs. fill: Typically, the color aesthetic changes the outline of a geom and the fill aesthetic changes the inside.
+
+Attributes vs. aesthetics: arguments to set attributes of the plot, not map variables onto aesthetics.
+
+Color: You can specify colors in R using hex codes: a hash followed by two hexadecimal numbers each for red, green, and blue ("#RRGGBB"). Hexadecimal is base-16 counting. You have 0 to 9, and A representing 10 up to F representing 15. Pairs of hexadecimal numbers give you a range from 0 to 255. "#000000" is "black" (no color), "#FFFFFF" means "white", and `"#00FFFF" is cyan (mixed green and blue).
+
+A plot’s **geometry** dictates what visual elements will be used.
+
+**Themes** layer will enable you to make publication quality plots directly in R
+
+
+
+
+```{r }
+```
+
+# Scatterplots
+
+
+```{r }
+```
+
+# Histograms
+
+
+
+```{r hist, eval=TRUE}
+
+
+```
+
+# Bar charts
+
+We have three position options:
+
+- stack: The default
+- dodge: Preferred
+- fill: To show proportions
+
+
+```{r bar, eval=TRUE, echo=FALSE}
+
+#Fill
+
+ggplot(mtcars, aes(fcyl, fill = fam)) +
+  # Set the position to "fill"
+  geom_bar(position = "fill") +  
+  scale_fill_manual(values = wes_palette(2, name = "Zissou1", type = "continuous"))
+
+
+#Dodge
+ggplot(mtcars, aes(fcyl, fill = fam)) +
+  # Change the position to "dodge"
+  geom_bar(position = "dodge") +
+  scale_fill_manual(values = wes_palette(2, name = "Zissou1", type = "continuous"))
+
+#Overlapping bar plots
+ggplot(mtcars, aes(cyl, fill = fam)) +
+  # Change position to use the functional form, with width 0.2
+  geom_bar(position = position_dodge(width = 0.2), alpha = 0.6) +
+   scale_fill_manual(values = wes_palette(2, name = "Zissou1", type = "continuous"))
+
+#Scale
+
+ggplot(esoph, aes(alcgp, fill = agegp)) +
+  # Add a bar layer with position "fill"
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = wes_palette(6, name = "Zissou1", type = "continuous"))
+
+
+
+```
+
+# Line charts
+
+Excellent for timeseries data!
+
+Use color to distinguish between series. Also can use `geom_area` which defaults to stack. Use position = "fill" to show proportional trends over time. Use `geom_ribbon` to examine overlapping areas.
+
+Use the `economics` dataset to look at how the median unemployment time and the unemployment rate (the number of unemployed people as a proportion of the population) change over time.
+
+```{r line, eval=TRUE, echo=FALSE}
+
+ggplot(economics, aes(date, unemploy)) +
+  geom_line()
+
+economics <- economics %>% 
+  mutate(quartile = ntile(pop, 4))
+
+economics$fquart <- as.factor(economics$quartile)
+
+# Plot multiple time-series by grouping by species
+ggplot(economics, aes(x = date, y = unemploy)) +
+  geom_line(aes(group = fquart))
+
+    
+ggplot(economics, aes(x = date, y = unemploy, color = fquart)) +
+  geom_line()
+
+ggplot(storms, aes(x = year, y = wind, color = category)) +
+  geom_line()
+
+
+
+```
+
+
+```{r kjv}
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

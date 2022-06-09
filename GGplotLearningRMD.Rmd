@@ -173,7 +173,7 @@ We have three position options:
 - fill: To show proportions
 
 
-```{r bar, eval=TRUE, echo=FALSE}
+```{r bar, eval=TRUE}
 
 #Fill
 
@@ -235,14 +235,62 @@ ggplot(economics, aes(x = date, y = unemploy, color = fquart)) +
 ggplot(storms, aes(x = year, y = wind, color = category)) +
   geom_line()
 
-data("freeny")
+
 
 
 ```
 
+# Themes
 
-```{r kjv}
+Defining your own theme!
 
+Built-in themes
+
+- theme_gray() is the default
+- theme_bw() is useful when you use transparency
+- theme_classic() is more traditional
+- theme_void() removes everything but the data
+
+
+```{r themes, eval = TRUE}
+
+theme_iris <- theme(text = element_text(family = "serif", size = 14),
+              rect = element_blank(),
+              panel.grid = element_blank(), 
+              title = element_text(color = "#8b0000"),
+              axis.line = element_line(color = "black"))
+
+m <- ggplot(iris, aes(x = Sepal.Width)) +
+          geom_histogram(binwidth = 0.1, center = 0.05)
+
+m + theme_iris
+
+m + theme_iris +
+  theme(axis.line.x  = element_blank())
+
+#apply custom theme
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, col = Species)) +
+  geom_jitter(alpha = 0.5) +
+  theme_iris
+
+#stock themes in ggthemes
+
+library(ggthemes)
+
+m + theme_tufte()
+m + theme_fivethirtyeight()
+
+#code below for dumbbell plots
+# Set the color scale
+#palette <- brewer.pal(5, "RdYlBu")[-(2:4)]
+
+
+# ggplot(gm2007, aes(x = lifeExp, y = country, color = lifeExp)) +
+#   geom_point(size = 4) +
+#   geom_segment(aes(xend = 30, yend = country), size = 2) +
+#   geom_text(aes(label = round(lifeExp,1)), color = "white", size = 1.5) +
+#   scale_x_continuous("", expand = c(0,0), limits = c(30,90), position = "top") +
+#   scale_color_gradientn(colors = palette)
 
 ```
 

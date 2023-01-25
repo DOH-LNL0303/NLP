@@ -146,6 +146,7 @@ Histograms cut up a continuous variable into discrete bins and, by default, maps
 - fill: Bars for different groups are shown as proportions.
 - identity: Plot the values as they appear in the dataset.
 
+A density plot is a representation of the distribution of a numeric variable. It uses a kernel density estimate to show the probability density function of the variable. Note that bandwidth selection will depend on the data. Guidance [here](https://r-coder.com/density-plot-r/#Kernel_density_bandwidth_selection)
 
 ```{r hist, eval=TRUE}
 
@@ -162,6 +163,15 @@ ggplot(iris, aes(x = Sepal.Width, fill = Species)) +
   geom_histogram(binwidth = 0.1, center = 0.05, position = "fill") +
    scale_fill_manual(values = wes_palette(3, name = "Zissou1", type = "continuous"))
 
+#Density plots
+
+iris %>%
+    group_by(Species) %>%
+    ggplot(mapping = aes(x = Petal.Width)) + 
+        geom_density(bw = 0.09,  fill = "gold") +
+        labs(x = "Petal Width") + 
+        facet_wrap(~Species, labeller = "label_both")
+
 ```
 
 # Bar charts
@@ -175,11 +185,18 @@ We have three position options:
 
 ```{r bar, eval=TRUE}
 
-#Fill
+# Fill
+
+ggplot(mtcars, aes(fcyl, fill = fam)) +
+  geom_bar() +
+  scale_fill_manual(values = wes_palette(2, name = "Zissou1", type = "continuous"))
+
+#Fill - conditional bar chart
 
 ggplot(mtcars, aes(fcyl, fill = fam)) +
   # Set the position to "fill"
   geom_bar(position = "fill") +  
+  ylab("proportion") +
   scale_fill_manual(values = wes_palette(2, name = "Zissou1", type = "continuous"))
 
 

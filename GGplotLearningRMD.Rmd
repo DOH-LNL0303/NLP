@@ -163,6 +163,7 @@ ggplot(iris, aes(x = Sepal.Width, fill = Species)) +
   geom_histogram(binwidth = 0.1, center = 0.05, position = "fill") +
    scale_fill_manual(values = wes_palette(3, name = "Zissou1", type = "continuous"))
 
+
 #Density plots
 
 iris %>%
@@ -171,6 +172,21 @@ iris %>%
         geom_density(bw = 0.09,  fill = "gold") +
         labs(x = "Petal Width") + 
         facet_wrap(~Species, labeller = "label_both")
+
+# overlapping density plots
+
+common_cyl <- filter(mtcars, cyl %in% c(4, 6, 8))
+
+ggplot(common_cyl, aes(x = mpg, fill = as.factor(cyl))) +
+  geom_density(alpha = .4) + # increase alpha for higher opacity
+  scale_fill_manual(values = wes_palette(3, name = "Zissou1", type = "continuous")) +
+  ggtitle("Density Plot of MPG by Cylinder Type")
+
+
+ggplot(common_cyl, aes(x = mpg, fill = as.factor(cyl))) +
+  geom_density(alpha = .4, bw = 3) + # increase bandwidth for smoother plot
+  scale_fill_manual(values = wes_palette(3, name = "Zissou1", type = "continuous")) +
+   ggtitle("Density Plot of MPG by Cylinder Type, Smoothed")
 
 ```
 
@@ -184,7 +200,6 @@ We have three position options:
 
 
 ```{r bar, eval=TRUE}
-
 # Fill
 
 ggplot(mtcars, aes(fcyl, fill = fam)) +
@@ -218,8 +233,20 @@ ggplot(esoph, aes(alcgp, fill = agegp)) +
   # Add a bar layer with position "fill"
   geom_bar(position = "fill") +
   scale_fill_manual(values = wes_palette(6, name = "Zissou1", type = "continuous"))
+```
 
+# Boxplots
 
+Advantages: can see several distributions at once and can detect outliers!
+Disadvantages: no capacity to detect multiple distinct modes (> 1 "hump")
+
+```{r box, eval=TRUE}
+str(mtcars)
+
+common_cyl <- filter(mtcars, cyl %in% c(4, 6, 8))
+
+ggplot(common_cyl, aes(x = as.factor(cyl), y = mpg)) +
+  geom_boxplot()
 
 ```
 
